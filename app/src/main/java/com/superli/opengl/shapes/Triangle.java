@@ -45,8 +45,10 @@ public class Triangle {
         // 标记缓冲去的位置为第一个
         vertexBuffer.position(0);
 
+//        int vertexShader = MyGLRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
+//                vertexShaderCode);
         int vertexShader = MyGLRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
-                vertexShaderCode);
+                vertexShaderCode2);
         int fragmentShader = MyGLRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER,
                 fragmentShaderCode);
 
@@ -90,6 +92,35 @@ public class Triangle {
         // 弃用顶点数组
         GLES20.glDisableVertexAttribArray(mPositionHandle);
     }
+
+    public void draw(float[] mvpMatrix) { // 传递已经计算好的变换矩阵
+        draw();
+
+        // 获取图形变换矩阵的句柄
+        mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+
+        // 将投影和视图变换传递给渲染器
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+
+        // 绘制三角形
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
+
+        // 弃用顶点数组
+        GLES20.glDisableVertexAttribArray(mPositionHandle);
+    }
+
+    private final String vertexShaderCode2 =
+            // 这个矩阵的成员变量提供了一个Hook来操作使用顶点渲染器渲染的对象的坐标
+            "uniform mat4 uMVPMatrix;" +
+                    "attribute vec4 vPosition;" +
+                    "void main() {" +
+                    // 矩阵必须包含gl_Position修饰符
+                    // 注意，为了保证乘积的可靠性，uMVPMatrix元素必须是第一个
+                    "  gl_Position = uMVPMatrix * vPosition;" +
+                    "}";
+
+    // 用于设置视图变换
+    private int mMVPMatrixHandle;
 
 
     private final String vertexShaderCode =

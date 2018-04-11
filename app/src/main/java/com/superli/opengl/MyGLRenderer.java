@@ -2,6 +2,7 @@ package com.superli.opengl;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 
 import com.superli.opengl.shapes.Triangle;
 
@@ -23,9 +24,19 @@ public class MyGLRenderer implements GLSurfaceView.Renderer{
         mTriangle = new Triangle();
     }
 
+    // mMVPMatrix 的全称是 "Model View Projection Matrix"
+    private final float[] mMVPMatrix = new float[16];
+    private final float[] mProjectionMatrix = new float[16];
+    private final float[] mViewMatrix = new float[16];
+
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
+
+        float ratio = (float) width / height;
+
+        // 这个投影矩阵被用于onDrawFrame()中绘制对象的坐标系
+        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
     }
 
     @Override
@@ -33,7 +44,22 @@ public class MyGLRenderer implements GLSurfaceView.Renderer{
         // 重绘背景色
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         //绘制三角
-        mTriangle.draw();
+//        mTriangle.draw();
+
+        /**
+         * 设置相机的位置（相当于观察点的坐标）
+         *void setLookAtM(matrix, offset,//视图矩阵和偏移量
+         *              eysx, eyey, eyez,//定义目标观察点的位置
+         *	           centerx, centery, centerz,//指定视线上任意一点
+         *				upx, upy, upz)//表示那个方向朝上
+         **/
+        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+
+        // 计算绘制物体最终在屏幕上的投影和视图变换
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+
+        // 绘制图形
+        mTriangle.draw(mMVPMatrix);
     }
 
     public static int loadShader(int type, String shaderCode){
