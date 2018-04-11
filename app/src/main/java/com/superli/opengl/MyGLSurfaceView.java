@@ -19,6 +19,6 @@ public class MyGLSurfaceView extends GLSurfaceView {
         // 将绘制用的渲染器设置给GLSurfaceView。
         setRenderer(mRenderer);
         // 只有当绘制数据变化时，才绘制/重绘视图。
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+//        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
 }

@@ -3,6 +3,7 @@ package com.superli.opengl;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.os.SystemClock;
 
 import com.superli.opengl.shapes.Triangle;
 
@@ -28,6 +29,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer{
     private final float[] mMVPMatrix = new float[16];
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
+    private float[] mRotationMatrix = new float[16];
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
@@ -58,8 +60,21 @@ public class MyGLRenderer implements GLSurfaceView.Renderer{
         // 计算绘制物体最终在屏幕上的投影和视图变换
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
+        // 为三角形创建旋转变换
+        float[] scratch = new float[16];
+        long time = SystemClock.uptimeMillis() % 4000L;
+        float angle = 0.090f * ((int) time);
+        Matrix.setRotateM(mRotationMatrix, 0, angle, 0, 0, -1.0f);
+
+        // 将旋转矩阵和投影、相机视图链接到一起
+        // 为了矩阵乘积的正确性，必须将*mMVPMatrix*放在首位
+        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
+
+        // 绘制三角形
+        mTriangle.draw(scratch);
+
         // 绘制图形
-        mTriangle.draw(mMVPMatrix);
+//        mTriangle.draw(mMVPMatrix);
     }
 
     public static int loadShader(int type, String shaderCode){
